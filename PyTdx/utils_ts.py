@@ -1,23 +1,21 @@
 #!/iQuant/MyQuantLib
 # -*- coding: utf-8 -*-
-# @Time    : 2018/2/21 23:23
+# @Time    : 2018/2/22 14:27
 # @Author  : Aries
 # @Email   : aidabloc@163.com
-# @File       : utils_cal.py
-
+# @File       : utils_ts.py
 import tushare as ts
 import pandas as pd
 from datetime import timedelta
 from datetime import datetime
-from PyTdx.utils_function_timer import dy_func_timer
+from PyTdx.utils import dy_func_timer
 
-
-# 交易日历
 START_DATE = '2009-01-01'
 END_DATE = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
 
 
-class DyCal(object):
+# 交易日历
+class TsCal(object):
     def __init__(self, start=START_DATE, end=END_DATE):
         # tushare 交易日历
         # 日后替换其它数据源做交叉验证
@@ -32,7 +30,7 @@ class DyCal(object):
         self.cal_date = index_cal.index.strftime("%Y-%m-%d")
 
     def __call__(self, *args, **kwargs):
-        return self.cal_date
+        return self.cal_date.tolist()
 
     @staticmethod
     @dy_func_timer
@@ -70,9 +68,33 @@ class DyCal(object):
             START_DATE, END_DATE, cross.shape[0]))
 
 
+# 股票池
+class TsUniverse(object):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    @dy_func_timer
+    def ts_universe(date):
+        if date is not None:
+            universe = ts.get_stock_basics(date)
+            universe = universe.index.tolist()
+            universe.sort()
+            print("日期:{}股票数目:{}".format(date, len(universe)))
+            return universe
+        else:
+            date = datetime.today().strftime("%Y-%m-%d")
+            universe = ts.get_stock_basics(date).index.tolist()
+            universe.sort()
+            print("日期:{}股票数目:{}".format(date, len(universe)))
+            return universe
+
+    def __call__(self, date=None):
+        return self.ts_universe(date)
+
+
 if __name__ == "__main__":
-    cal = DyCal()()
+    cal = TsCal()()
     print(cal)
-
-
-
+    universe = TsUniverse()("2017-12-29")
+    print(universe)
